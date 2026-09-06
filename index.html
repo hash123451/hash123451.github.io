@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Music Player</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#0b0b0d;--card:#17171b;--card2:#232329;--text:#f5f5f7;--sub:#a5a5ad;--accent:#b9f35a}
+body{margin:0;background:linear-gradient(180deg,#101015 0%,#08080a 100%);color:var(--text);font-family:"Pretendard","Noto Sans KR",Arial,sans-serif;min-height:100vh;display:grid;place-items:center}
+.app{width:min(430px,100vw);min-height:100vh;background:var(--bg);padding:18px 20px 28px;position:relative;overflow:hidden}
+.header{height:48px;display:flex;align-items:center;justify-content:space-between;font-size:20px}
+.header button,.icon-btn{border:0;background:transparent;color:#fff;font-size:24px;cursor:pointer;padding:8px}
+.now-playing{text-align:center;color:#aaa;font-size:12px;letter-spacing:.08em;margin:18px 0 16px}
+.cover-wrap{width:min(350px,82vw);aspect-ratio:1;margin:0 auto 28px;border-radius:28px;overflow:hidden;background:linear-gradient(145deg,#d9ddc7,#4d5549);box-shadow:0 22px 50px rgba(0,0,0,.5);position:relative}
+.cover{width:100%;height:100%;display:grid;place-items:center;font-size:96px;background:linear-gradient(135deg,#5e675a,#20251f 45%,#9ba78f)}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.13),transparent 45%,rgba(0,0,0,.28))}
+.info{padding:0 5px}
+.title-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:25px;margin:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artist{font-size:15px;color:var(--sub);margin-top:7px}
+.favorite{font-size:25px;color:#fff;background:none;border:0;cursor:pointer}
+.favorite.on{color:var(--accent)}
+.progress-area{margin-top:25px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:10px;background:#3d3d43;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff}
+.times{display:flex;justify-content:space-between;margin-top:8px;color:#929299;font-size:12px}
+.controls{display:flex;align-items:center;justify-content:space-between;margin:22px 8px 28px}
+.controls button{border:0;color:#fff;background:transparent;cursor:pointer;font-size:27px;width:52px;height:52px;border-radius:50%}
+.controls .play{width:72px;height:72px;background:#f4f4f6;color:#111;font-size:30px;box-shadow:0 8px 25px rgba(255,255,255,.12)}
+.controls .active-mode{color:var(--accent)}
+.extra{display:flex;justify-content:space-around;border-top:1px solid #29292f;border-bottom:1px solid #29292f;padding:13px 0;margin-bottom:16px}
+.extra button{border:0;background:transparent;color:#a6a6ad;font-size:21px;cursor:pointer}
+.bottom-sheet{background:var(--card);border-radius:22px;padding:16px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sheet-head b{font-size:16px}.count{color:#888;font-size:13px}
+.list{display:grid;gap:4px;max-height:190px;overflow:auto}
+.song{display:flex;align-items:center;gap:12px;padding:11px;border-radius:14px;cursor:pointer}
+.song:hover{background:#24242a}.song.active{background:#2b2b31}
+.song-num{color:#888;width:18px;font-size:13px}.song-text{min-width:0;flex:1}
+.song-title{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song.active .song-title{color:var(--accent)}
+.song-artist{font-size:12px;color:#8e8e96;margin-top:3px}
+.volume{display:flex;align-items:center;gap:10px;color:#aaa;padding:12px 5px 4px}
+.volume input{flex:1}
+@media(min-width:500px){body{padding:25px}.app{min-height:760px;border-radius:32px;box-shadow:0 30px 80px #000}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <button aria-label="뒤로">⌄</button>
+    <strong>음악</strong>
+    <button aria-label="메뉴">⋮</button>
+  </div>
+
+  <div class="now-playing">NOW PLAYING</div>
+
+  <div class="cover-wrap"><div class="cover">♫</div></div>
+
+  <div class="info">
+    <div class="title-row">
+      <h1 id="title">Pretender</h1>
+      <button class="favorite" id="favorite" aria-label="좋아요">♡</button>
+    </div>
+    <div class="artist" id="artist">Official髭男dism</div>
+  </div>
+
+  <div class="progress-area">
+    <input id="seek" type="range" min="0" max="100" value="0">
+    <div class="times"><span id="now">0:00</span><span id="total">0:00</span></div>
+  </div>
+
+  <div class="controls">
+    <button id="shuffle" title="셔플">⇄</button>
+    <button id="prev" title="이전">⏮</button>
+    <button id="play" class="play" title="재생">▶</button>
+    <button id="next" title="다음">⏭</button>
+    <button id="repeat" title="반복">↻</button>
+  </div>
+
+  <div class="extra">
+    <button title="재생목록">☷</button>
+    <button title="가사">♪</button>
+    <button title="기기 연결">◉</button>
+  </div>
+
+  <div class="bottom-sheet">
+    <div class="sheet-head"><b>현재 재생목록</b><span class="count" id="count"></span></div>
+    <div class="list" id="list"></div>
+    <div class="volume">🔊 <input id="vol" type="range" min="0" max="1" step=".01" value=".8"></div>
+  </div>
+
+  <audio id="audio" preload="metadata"></audio>
+</div>
+
+<script>
+const songs=[
+ {title:"Pretender",artist:"Official髭男dism",file:"Pretender.mp3"},
+ {title:"水平線",artist:"back number",file:"suiheisen.mp3"}
+];
+
+const $=id=>document.getElementById(id);
+const audio=$("audio"),play=$("play"),seek=$("seek"),vol=$("vol");
+let n=0, shuffle=false, repeat=false, liked=new Set();
+
+function time(s){s=Math.floor(s||0);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+
+function renderList(){
+ $("count").textContent=`${songs.length}곡`;
+ $("list").innerHTML=songs.map((s,i)=>`
+ <div class="song ${i===n?"active":""}" data-i="${i}">
+   <div class="song-num">${i+1}</div>
+   <div class="song-text"><div class="song-title">${s.title}</div><div class="song-artist">${s.artist}</div></div>
+ </div>`).join("");
+ document.querySelectorAll(".song").forEach(el=>el.onclick=()=>load(+el.dataset.i,true));
+}
+
+function updateLike(){
+ const on=liked.has(n); $("favorite").classList.toggle("on",on);
+ $("favorite").textContent=on?"♥":"♡";
+}
+
+function load(i,auto=false){
+ n=(i+songs.length)%songs.length;
+ $("title").textContent=songs[n].title;
+ $("artist").textContent=songs[n].artist;
+ audio.pause(); audio.src=songs[n].file; audio.load();
+ renderList(); updateLike();
+ if(auto) audio.play().catch(e=>console.warn(e));
+}
+
+play.onclick=()=>audio.paused?audio.play():audio.pause();
+$("prev").onclick=()=>load(n-1,true);
+$("next").onclick=()=>nextSong();
+$("favorite").onclick=()=>{liked.has(n)?liked.delete(n):liked.add(n);updateLike()};
+$("shuffle").onclick=()=>{shuffle=!shuffle;$("shuffle").classList.toggle("active-mode",shuffle)};
+$("repeat").onclick=()=>{repeat=!repeat;$("repeat").classList.toggle("active-mode",repeat);audio.loop=repeat};
+vol.oninput=()=>audio.volume=vol.value;
+audio.volume=.8;
+
+function nextSong(){
+ if(shuffle && songs.length>1){let x;do{x=Math.floor(Math.random()*songs.length)}while(x===n);load(x,true)}
+ else load(n+1,true);
+}
+
+audio.onloadedmetadata=()=>$("total").textContent=time(audio.duration);
+audio.ontimeupdate=()=>{
+ $("now").textContent=time(audio.currentTime);
+ seek.value=audio.duration?(audio.currentTime/audio.duration*100):0;
+};
+seek.oninput=()=>{if(audio.duration)audio.currentTime=audio.duration*seek.value/100};
+audio.onplay=()=>play.textContent="❚❚";
+audio.onpause=()=>play.textContent="▶";
+audio.onended=()=>{if(!repeat)nextSong()};
+load(0);
+</script>
+</body>
+</html>
