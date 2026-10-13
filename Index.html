@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Melody Player</title>
+<style>
+*{box-sizing:border-box} :root{--bg:#090a0f;--card:#12141c;--text:#f5f6fa;--muted:#9298a8;--line:rgba(255,255,255,.1);--accent:#a78bfa}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -20%,#28213d 0,#090a0f 48%);color:var(--text);font-family:Inter,Pretendard,Arial,sans-serif}
+button,input{font:inherit}button{cursor:pointer;color:inherit;border:0}.app{max-width:720px;margin:auto;padding:24px 14px 60px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.logo{font-size:25px;font-weight:850;letter-spacing:-1px}.logo span{color:var(--accent)}.muted{color:var(--muted);font-size:13px}
+.card{background:rgba(18,20,28,.94);border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:0 25px 80px #0004}.hidden{display:none!important}
+h1,h2,p{margin-top:0}h2{font-size:22px}.field{display:block;width:100%;padding:13px 14px;margin:9px 0;background:#0c0e14;border:1px solid var(--line);border-radius:12px;color:#fff;outline:none}.field:focus{border-color:var(--accent)}
+.btn{padding:12px 15px;border-radius:12px;background:#262137;border:1px solid #514274;color:#eee8ff;font-weight:700}.btn.primary{background:#f4f1ff;color:#171321;border-color:#f4f1ff}.btn.subtle{background:#171a23;border-color:var(--line)}.btn:disabled{opacity:.4;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.auth-switch{margin-top:16px;text-align:center;font-size:13px;color:var(--muted)}.link{background:none;color:#c4b5fd;text-decoration:underline;padding:4px}.notice{font-size:12px;line-height:1.5;color:#c0b7d9;margin-top:14px}
+.userbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.pill{font-size:12px;color:#d5c9ff;background:#28213d;border-radius:99px;padding:7px 10px}
+.upload{display:block;padding:17px;border:1px dashed #66568c;border-radius:16px;text-align:center;background:#171421;margin:14px 0}.upload input{display:block;width:100%;margin-top:12px;font-size:13px}
+.song{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;padding:13px 10px;border-radius:14px;border-bottom:1px solid #ffffff0a}.song.active{background:#211c31}.songName{font-weight:750;font-size:14px;overflow-wrap:anywhere}.songMeta{font-size:12px;color:var(--muted);margin-top:4px}.smallbtn{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#171a23;font-size:12px}.empty{text-align:center;color:var(--muted);padding:30px 10px}
+.player{margin-top:18px;padding-top:20px;border-top:1px solid var(--line)}.cover{aspect-ratio:1;max-width:330px;margin:5px auto 24px;border-radius:24px;background:linear-gradient(145deg,#2d2544,#101117);display:grid;place-items:center}.disc{width:62%;aspect-ratio:1;border-radius:50%;background:repeating-radial-gradient(circle,#101014 0 4px,#303039 5px 7px);border:14px solid #17171b;position:relative}.disc:after{content:"";position:absolute;inset:41%;border-radius:50%;background:#e3ddff;box-shadow:0 0 0 8px var(--accent)}.title{font-size:26px;font-weight:850;overflow-wrap:anywhere}.artist{color:var(--muted);margin-top:6px}.range{width:100%;accent-color:var(--accent);margin-top:20px}.time{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.controls{display:flex;justify-content:center;align-items:center;gap:18px;margin:18px 0}.ctrl{font-size:21px;background:none;padding:8px}.play{height:62px;width:62px;border-radius:50%;background:#f4f1ff;color:#15121e;font-size:22px}.actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.adminbox{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}.adminbox h3{font-size:15px}
+@media(max-width:480px){.card{padding:18px 14px}.app{padding:18px 10px}.title{font-size:22px}}
+</style>
+</head>
+<body><div class="app">
+<header><div class="logo">Melody <span>Player</span></div><span class="muted">YOUR MUSIC SPACE</span></header>
+<section class="card" id="authCard">
+  <div id="loginPanel"><h2>로그인</h2><p class="muted">계정에 로그인해 음악 라이브러리를 이용하세요.</p>
+    <input class="field" id="loginId" autocomplete="username" placeholder="아이디">
+    <input class="field" id="loginPw" type="password" autocomplete="current-password" placeholder="비밀번호">
+    <button class="btn primary" style="width:100%;margin-top:5px" id="loginBtn">로그인</button>
+    <div class="auth-switch">계정이 없나요? <button class="link" id="toRegister">회원가입</button></div>
+  </div>
+  <div id="registerPanel" class="hidden"><h2>회원가입</h2><p class="muted">버튼을 누르면 guest1, guest2 순서로 아이디가 자동 생성되고 숫자 비밀번호가 랜덤으로 발급됩니다.</p>
+    <button class="btn primary" style="width:100%;margin-top:5px" id="registerBtn">계정 만들기</button>
+    <div class="auth-switch">이미 계정이 있나요? <button class="link" id="toLogin">로그인</button></div>
+  </div>
+  <p class="notice">안내: 이 파일은 GitHub Pages에서 동작하는 프런트엔드 시제품입니다. 계정은 이 브라우저에 저장되며 다른 기기와 공유되지 않습니다. 실제 서비스용 보안 인증은 서버 또는 Firebase 같은 인증 서비스가 필요합니다.</p>
+</section>
+<section class="card hidden" id="appCard">
+  <div class="userbar"><div><div class="muted">로그인 계정</div><strong id="currentUser"></strong></div><div class="row" style="flex:0 0 auto"><span class="pill hidden" id="adminBadge">DEVELOPER ADMIN</span><button class="btn subtle" id="logoutBtn">로그아웃</button></div></div>
+  <h2>내 음악</h2><p class="muted">기존 기본 노래는 없습니다. 내 기기에서 오디오 파일을 추가하세요.</p>
+  <label class="upload"><strong>＋ 음악 파일 추가</strong><div class="muted">MP3, M4A, WAV, OGG 등 오디오 파일 선택</div><input type="file" id="filePicker" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac" multiple></label>
+  <div class="row" style="margin:12px 0"><input class="field" style="margin:0;flex:2" id="search" placeholder="내 노래 검색"><button class="btn subtle" id="clearSongs" style="flex:1">목록 비우기</button></div>
+  <div id="songList"></div>
+  <div class="player">
+    <div class="cover"><div class="disc"></div></div>
+    <div class="muted">NOW PLAYING</div><div class="title" id="trackTitle">노래를 추가해 주세요</div><div class="artist" id="trackArtist">내 음악 라이브러리</div>
+    <input class="range" id="seek" type="range" min="0" max="100" value="0">
+    <div class="time"><span id="curTime">0:00</span><span id="duration">0:00</span></div>
+    <div class="controls"><button class="ctrl" id="prev">|◀</button><button class="play" id="play">▶</button><button class="ctrl" id="next">▶|</button></div>
+    <div class="actions"><button class="btn subtle" id="volume">🔊 25%</button><button class="btn subtle" id="speed">1.0×</button></div>
+    <audio id="audio" preload="metadata"></audio>
+  </div>
+  <div class="adminbox hidden" id="adminBox"><h3>개발자 관리</h3><p class="muted">이 시제품에서는 개발자 계정으로 로그인했을 때 표시됩니다.</p><button class="btn subtle" id="adminClear">이 브라우저의 음악 목록 전체 삭제</button></div>
+</section>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const DBKEY='melody_demo_accounts_v1';
+let accounts={};
+try{accounts=JSON.parse(localStorage.getItem(DBKEY)||'{}')}catch(e){accounts={}}
+/* 데모용 관리자 계정. 클라이언트 코드에 자격 증명을 두는 방식은 실제 서비스에 안전하지 않습니다. */
+accounts.admin=accounts.admin||{password:'111111111!',role:'admin'};
+function saveAccounts(){localStorage.setItem(DBKEY,JSON.stringify(accounts))}
+saveAccounts();
+let songs=[],index=-1,volumeSteps=[0,5,25,50,75,100],volIndex=2,speeds=[1,1.25,1.5,0.75],speedIndex=0;
+const audio=$('#audio');
+function toast(msg){alert(msg)}
+function showAuth(which){$('#loginPanel').classList.toggle('hidden',which!=='login');$('#registerPanel').classList.toggle('hidden',which!=='register')}
+$('#toRegister').onclick=()=>showAuth('register');$('#toLogin').onclick=()=>showAuth('login');
+function login(){
+ const id=$('#loginId').value.trim(),pw=$('#loginPw').value;
+ if(!accounts[id]||accounts[id].password!==pw){toast('아이디 또는 비밀번호가 올바르지 않습니다.');return}
+ $('#authCard').classList.add('hidden');$('#appCard').classList.remove('hidden');$('#currentUser').textContent=id;
+ const admin=accounts[id].role==='admin';$('#adminBadge').classList.toggle('hidden',!admin);$('#adminBox').classList.toggle('hidden',!admin);
+ drawList();
+}
+$('#loginBtn').onclick=login;$('#loginPw').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+$('#registerBtn').onclick=()=>{
+ // 가장 큰 guest 번호 다음 번호를 사용해 기존 계정이 있어도 번호가 겹치지 않게 합니다.
+ let next=1;
+ for(const id of Object.keys(accounts)){
+   const m=id.match(/^guest(\d+)$/i);
+   if(m) next=Math.max(next,Number(m[1])+1);
+ }
+ const id='guest'+next;
+ let pw=String(Math.floor(100000+Math.random()*900000));
+ // 드물게 중복 비밀번호가 나와도 계정 아이디는 고유하며, 숫자 6자리 비밀번호를 발급합니다.
+ accounts[id]={password:pw,role:'user'};saveAccounts();
+ showAuth('login');$('#loginId').value=id;$('#loginPw').value='';
+ alert('회원가입 완료!\n\n아이디: '+id+'\n숫자 비밀번호: '+pw+'\n\n비밀번호는 다시 확인하기 어려우니 꼭 저장해 두세요.');
+ $('#loginPw').focus();
+};
+$('#logoutBtn').onclick=()=>{audio.pause();songs.forEach(s=>{if(s.url)URL.revokeObjectURL(s.url)});songs=[];index=-1;$('#appCard').classList.add('hidden');$('#authCard').classList.remove('hidden');$('#loginPw').value='';drawList();renderCurrent()};
+function fmt(n){return Number.isFinite(n)?Math.floor(n/60)+':'+String(Math.floor(n%60)).padStart(2,'0'):'0:00'}
+function renderCurrent(){
+ if(index<0||!songs[index]){$('#trackTitle').textContent='노래를 추가해 주세요';$('#trackArtist').textContent='내 음악 라이브러리';$('#duration').textContent='0:00';$('#curTime').textContent='0:00';$('#play').textContent='▶';return}
+ $('#trackTitle').textContent=songs[index].title;$('#trackArtist').textContent=songs[index].artist||'내 파일';drawList();
+}
+function drawList(){
+ const q=$('#search').value.toLowerCase(),box=$('#songList');box.innerHTML='';
+ const shown=songs.map((s,i)=>({...s,i})).filter(s=>s.title.toLowerCase().includes(q));
+ if(!shown.length){box.innerHTML='<div class="empty">아직 추가된 노래가 없습니다.<br>위에서 파일을 선택해 추가하세요.</div>';return}
+ shown.forEach(s=>{const el=document.createElement('div');el.className='song'+(s.i===index?' active':'');
+ const num=document.createElement('div');num.className='muted';num.textContent=String(s.i+1).padStart(2,'0');
+ const info=document.createElement('div'),name=document.createElement('div'),meta=document.createElement('div');name.className='songName';name.textContent=s.title;meta.className='songMeta';meta.textContent=s.artist||'내 파일';info.append(name,meta);
+ const btn=document.createElement('button');btn.className='smallbtn';btn.textContent=s.i===index&&!audio.paused?'재생 중':'재생';btn.onclick=()=>loadSong(s.i,true);
+ el.append(num,info,btn);el.onclick=e=>{if(e.target!==btn)loadSong(s.i,true)};box.append(el)});
+}
+function loadSong(i,autoplay=false){if(i<0||i>=songs.length)return;index=i;audio.src=songs[i].url;audio.load();renderCurrent();if(autoplay)audio.play().catch(()=>toast('이 파일은 재생할 수 없습니다.'))}
+$('#filePicker').onchange=e=>{
+ const files=[...e.target.files].filter(f=>f.type.startsWith('audio/')||/\.(mp3|m4a|wav|ogg|aac|flac)$/i.test(f.name));
+ files.forEach(f=>songs.push({title:f.name.replace(/\.[^.]+$/,''),artist:'내 기기에서 추가',url:URL.createObjectURL(f)}));
+ if(index<0&&songs.length)loadSong(0,false);else drawList();
+ if(files.length)toast(files.length+'개 파일을 추가했습니다. 새로고침하거나 로그아웃하면 목록은 초기화됩니다.');
+ e.target.value='';
+};
+$('#search').oninput=drawList;$('#clearSongs').onclick=()=>{if(confirm('현재 음악 목록을 비울까요?')){audio.pause();songs.forEach(s=>URL.revokeObjectURL(s.url));songs=[];index=-1;renderCurrent();drawList()}};
+$('#adminClear').onclick=()=>{if(confirm('현재 브라우저에서 등록된 일반 계정을 모두 삭제할까요? 관리자 계정은 유지됩니다.')){accounts={admin:{password:'111111111!',role:'admin'}};saveAccounts();toast('일반 계정 목록을 초기화했습니다.')}};
+$('#play').onclick=()=>{if(index<0){toast('먼저 음악 파일을 추가하세요.');return}if(audio.paused)audio.play().catch(()=>toast('재생할 수 없습니다.'));else audio.pause()};
+audio.onplay=()=>$('#play').textContent='❚❚';audio.onpause=()=>$('#play').textContent='▶';
+$('#prev').onclick=()=>{if(songs.length)loadSong((index-1+songs.length)%songs.length,true)};
+$('#next').onclick=()=>{if(songs.length)loadSong((index+1)%songs.length,true)};
+$('#volume').onclick=()=>{volIndex=(volIndex+1)%volumeSteps.length;audio.volume=volumeSteps[volIndex]/100;$('#volume').textContent='🔊 '+volumeSteps[volIndex]+'%'};
+$('#speed').onclick=()=>{speedIndex=(speedIndex+1)%speeds.length;audio.playbackRate=speeds[speedIndex];$('#speed').textContent=speeds[speedIndex].toFixed(2).replace(/0$/,'')+'×'};
+audio.onloadedmetadata=()=>{$('#duration').textContent=fmt(audio.duration)};
+audio.ontimeupdate=()=>{const p=audio.duration?audio.currentTime/audio.duration*100:0;$('#seek').value=p;$('#curTime').textContent=fmt(audio.currentTime)};
+$('#seek').oninput=e=>{if(audio.duration)audio.currentTime=Number(e.target.value)/100*audio.duration};
+audio.onended=()=>{if(songs.length)loadSong((index+1)%songs.length,true)};
+audio.volume=.25;
+drawList();renderCurrent();
+</script></body></html>
